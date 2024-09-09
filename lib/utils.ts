@@ -1,6 +1,12 @@
 import qs from "qs";
 
 import { aspectRatioOptions } from "@/constants";
+import clsx, { ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 // ERROR HANDLER
 export const handleError = (error: unknown) => {
