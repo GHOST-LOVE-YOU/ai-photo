@@ -1,6 +1,7 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
-import { WebhookEvent } from "@clerk/nextjs/server";
+import { clerkClient, WebhookEvent } from "@clerk/nextjs/server";
+import { createUser, updateUser } from "@/lib/actions/user.actions";
 // import { clerkClient, WebhookEvent } from "@clerk/nextjs/server";
 // import { createUser, deleteUser, updateUser } from "@/lib/actions/user.actions";
 // import { NextResponse } from "next/server";
@@ -58,35 +59,46 @@ export async function POST(req: Request) {
   console.log(`Webhook with and ID of ${id} and type of ${eventType}`);
   console.log("Webhook body:", body);
 
-  // // CREATE
-  // if (eventType === "user.created") {
-  //   const { id, email_addresses, image_url, first_name, last_name, username } =
-  //     evt.data;
+  // CREATE
+  if (eventType === "user.created") {
+    const { id, email_addresses, image_url, first_name, last_name, username } =
+      evt.data;
 
-  //   const user = {
-  //     clerkId: id,
-  //     email: email_addresses[0].email_address,
-  //     username: username!,
-  //     firstName: first_name ?? "",
-  //     lastName: last_name ?? "",
-  //     photo: image_url,
-  //   };
+    console.log("Received user.created event");
+    console.log("Event data:", JSON.stringify(evt.data, null, 2));
 
-  //   const newUser = await createUser(user);
+    const user = {
+      clerkId: id,
+      email: email_addresses[0].email_address,
+      username: username!,
+      firstName: first_name ?? "",
+      lastName: last_name ?? "",
+      photo: image_url,
+    };
 
-  //   // Set public metadata
-  //   if (newUser) {
-  //     await clerkClient.users.updateUserMetadata(id, {
-  //       publicMetadata: {
-  //         userId: newUser._id,
-  //       },
-  //     });
-  //   }
+    console.log("Constructed user object:", JSON.stringify(user, null, 2));
 
-  //   return NextResponse.json({ message: "OK", user: newUser });
-  // }
+    const newUser = await createUser(user);
 
-  // // UPDATE
+    console.log("Result from createUser:", JSON.stringify(newUser, null, 2));
+
+    // Set public metadata
+    if (newUser) {
+      console.log("Updating user metadata");
+      await clerkClient.users.updateUserMetadata(id, {
+        publicMetadata: {
+          userId: newUser._id,
+        },
+      });
+      console.log("User metadata updated successfully");
+    } else {
+      console.log("Failed to create new user");
+    }
+
+    return Response.json({ message: "OK", user: newUser });
+  }
+
+  // UPDATE
   // if (eventType === "user.updated") {
   //   const { id, image_url, first_name, last_name, username } = evt.data;
 
