@@ -61,9 +61,6 @@ export async function POST(req: Request) {
     const { id, email_addresses, image_url, first_name, last_name, username } =
       evt.data;
 
-    console.log("Received user.created event");
-    console.log("Event data:", JSON.stringify(evt.data, null, 2));
-
     const user = {
       clerkId: id,
       email: email_addresses[0].email_address,
@@ -73,23 +70,15 @@ export async function POST(req: Request) {
       photo: image_url,
     };
 
-    console.log("Constructed user object:", JSON.stringify(user, null, 2));
-
     const newUser = await createUser(user);
-
-    console.log("Result from createUser:", JSON.stringify(newUser, null, 2));
 
     // Set public metadata
     if (newUser) {
-      console.log("Updating user metadata");
       await clerkClient.users.updateUserMetadata(id, {
         publicMetadata: {
           userId: newUser._id,
         },
       });
-      console.log("User metadata updated successfully");
-    } else {
-      console.log("Failed to create new user");
     }
 
     return Response.json({ message: "OK", user: newUser });
